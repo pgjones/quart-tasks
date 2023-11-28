@@ -239,11 +239,12 @@ class QuartTasks:
         self.after_task_funcs.append(func)
         return func
 
-    async def run(self) -> None:
+    async def run(self, task_name: Optional[str] = None) -> None:
         await self._store.startup()
         async with TaskGroup() as task_group:
             for task in self._tasks:
-                task_group.create_task(self._run_task(task))
+                if task_name is None or task_name == task.name:
+                    task_group.create_task(self._run_task(task))
         await self._store.shutdown()
 
     async def _run_task(self, task: _TaskProtocol) -> None:
@@ -291,15 +292,16 @@ class QuartTasks:
 
 
 @click.command("run-tasks")
+@click.argument("task_name", required=False)
 @pass_script_info
-def _run_tasks_command(info: ScriptInfo) -> None:
+def _run_tasks_command(info: ScriptInfo, task_name: Optional[str] = None) -> None:
     app = info.load_app()
 
     async def _inner() -> None:
         app.config["QUART_TASKS_WHILST_SERVING"] = False
         await app.startup()
         try:
-            await app.extensions["QUART_TASKS"].run()
+            await app.extensions["QUART_TASKS"].run(task_name)
         finally:
             await app.shutdown()
 
