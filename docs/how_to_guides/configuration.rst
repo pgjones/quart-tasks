@@ -5,12 +5,12 @@ The following configuration options are used by Quart-Tasks. They
 should be set as part of the standard `Quart configuration
 <https://pgjones.gitlab.io/quart/how_to_guides/configuration.html>`_.
 
-================================ ============ ================
-Configuration key                type         default
--------------------------------- ------------ ----------------
-QUART_TASKS_TIMEZONE             str          UTC
-QUART_TASKS_WHILST_SERVING       bool         True
-================================ ============ ================
+=========================== ============ ================
+Configuration key           type         default
+--------------------------- ------------ ----------------
+QUART_TASKS_TIMEZONE        str          UTC
+QUART_TASKS_WHILST_SERVING  bool         True
+=========================== ============ ================
 
 ``QUART_TASKS_TIMEZONE`` specifies the timezone the scheduled cron
 tasks should run in.

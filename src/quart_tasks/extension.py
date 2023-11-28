@@ -2,7 +2,7 @@ import asyncio
 import logging
 import sys
 from datetime import datetime, timedelta, tzinfo
-from typing import Awaitable, Callable, cast, List, Optional, Protocol, TypeVar, Union
+from typing import Awaitable, Callable, cast, List, Optional, Protocol, Tuple, TypeVar, Union
 
 import click
 from croniter import croniter
@@ -248,9 +248,13 @@ class QuartTasks:
 
     async def _run_task(self, task: _TaskProtocol) -> None:
         while not self._app.shutdown_event.is_set():
-            wait = await self._get_wait(task)
+            wait, target = await self._get_next(task)
             log.debug("Task %s sleeping for %d", task.name, wait)
             await _sleep_or_shutdown(wait, cast(asyncio.Event, self._app.shutdown_event))
+
+            start = datetime.now(self._tzinfo)
+            lag = (start - target).total_seconds()
+            log.debug("Task %s lagged for %d", task.name, lag)
 
             async with self._app.app_context():
                 await self._preprocess_task()
@@ -259,7 +263,7 @@ class QuartTasks:
                 except Exception as error:
                     await self._handle_exception(task, error)
                 finally:
-                    await self._store.set(task.name, datetime.now(self._tzinfo))
+                    await self._store.set(task.name, start)
                     await self._postprocess_task()
 
     async def _before_serving(self) -> None:
@@ -280,10 +284,10 @@ class QuartTasks:
         )
         self._app.logger.error("Exception", exc_info=sys.exc_info())
 
-    async def _get_wait(self, task: _TaskProtocol) -> Union[int, float]:
+    async def _get_next(self, task: _TaskProtocol) -> Tuple[Union[int, float], datetime]:
         now = datetime.now(self._tzinfo)
         next_execution = task.get_next(await self._store.get(task.name, now))
-        return max((next_execution - now).total_seconds(), 0)
+        return max((next_execution - now).total_seconds(), 0), next_execution
 
 
 @click.command("run-tasks")
