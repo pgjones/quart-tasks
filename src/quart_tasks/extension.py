@@ -144,7 +144,7 @@ class QuartTasks:
             nonlocal name
 
             if name is None:
-                name = func.__qualname__
+                name = func.__name__
 
             self._tasks.append(_CronTask(cron_format, name, func))
             return func
