@@ -28,7 +28,7 @@ def test_cron_get_next(cron: str, expected: datetime) -> None:
         assert task.get_next(datetime.now()) == expected
 
 
-async def test_complete(event_loop: asyncio.AbstractEventLoop) -> None:
+async def test_complete() -> None:
     app = Quart(__name__)
     quart_tasks = QuartTasks(app)
 
@@ -55,3 +55,31 @@ async def test_complete(event_loop: asyncio.AbstractEventLoop) -> None:
     await app.shutdown()
     assert before
     assert after
+
+
+async def test_testing() -> None:
+    app = Quart(__name__)
+    quart_tasks = QuartTasks(app)
+
+    before = False
+    after = False
+    has_run = asyncio.Event()
+
+    @quart_tasks.before_task
+    async def setup() -> None:
+        nonlocal before
+        before = True
+
+    @quart_tasks.after_task
+    async def cleanup() -> None:
+        nonlocal after
+        after = True
+
+    @quart_tasks.periodic(timedelta(microseconds=10))
+    async def job() -> None:
+        has_run.set()
+
+    await quart_tasks.test_run("job")
+    assert before
+    assert after
+    assert has_run.is_set()

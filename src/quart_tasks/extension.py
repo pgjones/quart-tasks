@@ -254,25 +254,45 @@ class QuartTasks:
                     task_group.create_task(self._run_task(task))
         await self._store.shutdown()
 
+    async def test_run(self, task_name: str) -> None:
+        try:
+            task = next(task for task in self._tasks if task_name == task.name)
+        except StopIteration:
+            raise ValueError(f"Task {task_name} not found")
+
+        await self._store.startup()
+        try:
+            await self._invoke_task(task, reraise=True)
+        finally:
+            await self._store.shutdown()
+
     async def _run_task(self, task: _TaskProtocol) -> None:
         while not self._app.shutdown_event.is_set():
             wait, target = await self._get_next(task)
             log.debug("Task %s sleeping for %d", task.name, wait)
             await _sleep_or_shutdown(wait, cast(asyncio.Event, self._app.shutdown_event))
 
+            if self._app.shutdown_event.is_set():
+                return
+
             start = datetime.now(self._tzinfo)
             lag = (start - target).total_seconds()
             log.debug("Task %s lagged for %d", task.name, lag)
 
-            async with self._app.app_context():
-                await self._preprocess_task()
-                try:
-                    await self._app.ensure_async(task.func)()
-                except Exception as error:
-                    await self._handle_exception(task, error)
-                finally:
-                    await self._store.set(task.name, start)
-                    await self._postprocess_task()
+            await self._invoke_task(task)
+            await self._store.set(task.name, start)
+
+    async def _invoke_task(self, task: _TaskProtocol, *, reraise: bool = False) -> None:
+        async with self._app.app_context():
+            await self._preprocess_task()
+            try:
+                await self._app.ensure_async(task.func)()
+            except Exception as error:
+                await self._handle_exception(task, error)
+                if reraise:
+                    raise error
+            finally:
+                await self._postprocess_task()
 
     async def _before_serving(self) -> None:
         if self._app.config.get("QUART_TASKS_WHILST_SERVING", True):
