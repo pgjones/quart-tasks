@@ -55,17 +55,17 @@ class _PeriodicTask:
 
 
 class _CronTask:
-    def __init__(self, cron_format: str, name: str, func: Callable) -> None:
-        self.croniter = croniter(cron_format, ret_type=datetime)
+    def __init__(self, cron_expression: str, name: str, func: Callable) -> None:
+        self.croniter = croniter(cron_expression, ret_type=datetime)
         self.func = func
         self.name = name
-        self.cron_format = cron_format
+        self.cron_expression = cron_expression
 
     def get_next(self, start_time: datetime) -> datetime:
         return self.croniter.get_next(start_time=start_time)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}({self.cron_format}, {self.name})"
+        return f"{self.__class__.__name__}({self.cron_expression}, {self.name})"
 
 
 class QuartTasks:
@@ -99,7 +99,7 @@ class QuartTasks:
 
     def cron(
         self,
-        cron_format: Optional[str] = None,
+        cron_expression: Optional[str] = None,
         /,
         *,
         seconds: Optional[str] = None,
@@ -128,7 +128,7 @@ class QuartTasks:
                 ...
 
         Arguments:
-            cron_format: The cron defintion.
+            cron_expression: The cron defintion.
             seconds: The seconds part of the cron definition.
             minutes: The minutes part of the cron definition.
             hours: The hours part of the cron definition.
@@ -138,18 +138,18 @@ class QuartTasks:
             name: Name of the task, defaults to the function name.
         """
 
-        if cron_format is None and (
+        if cron_expression is None and (
             minutes is None
             or hours is None
             or day_of_month is None
             or month is None
             or day_of_week is None
         ):
-            raise ValueError("cron_format or all individual parts must be specified")
-        if cron_format is None:
-            cron_format = f"{minutes} {hours} {day_of_month} {month} {day_of_week}"
+            raise ValueError("cron_expression or all individual parts must be specified")
+        if cron_expression is None:
+            cron_expression = f"{minutes} {hours} {day_of_month} {month} {day_of_week}"
             if seconds is not None:
-                cron_format = f"{cron_format} {seconds}"
+                cron_expression = f"{cron_expression} {seconds}"
 
         def decorator(func: Callable[P, T]) -> Callable[P, T]:
             nonlocal name
@@ -157,7 +157,7 @@ class QuartTasks:
             if name is None:
                 name = func.__name__
 
-            self._tasks.append(_CronTask(cron_format, name, func))
+            self._tasks.append(_CronTask(cron_expression, name, func))
             return func
 
         return decorator
@@ -348,7 +348,7 @@ def _list_tasks_command(info: ScriptInfo) -> None:
     rows = []
     for task in app.extensions["QUART_TASKS"]._tasks:
         if isinstance(task, _CronTask):
-            rows.append([task.name, task.cron_format])
+            rows.append([task.name, task.cron_expression])
         elif isinstance(task, _PeriodicTask):
             rows.append([task.name, str(task.period)])
 
