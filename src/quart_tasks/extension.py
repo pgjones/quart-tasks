@@ -146,6 +146,10 @@ class QuartTasks:
             or day_of_week is None
         ):
             raise ValueError("cron_format or all individual parts must be specified")
+        if cron_format is None:
+            cron_format = f"{minutes} {hours} {day_of_month} {month} {day_of_week}"
+            if seconds is not None:
+                cron_format = f"{cron_format} {seconds}"
 
         def decorator(func: Callable[P, T]) -> Callable[P, T]:
             nonlocal name
