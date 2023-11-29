@@ -1,3 +1,8 @@
+0.2.1 2023-11-29
+----------------
+
+* Bugfix actually implement the keyword argument cron expression.
+
 0.2.0 2023-11-29
 ----------------
 
