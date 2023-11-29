@@ -335,6 +335,28 @@ def _run_tasks_command(info: ScriptInfo, task_name: Optional[str] = None) -> Non
     asyncio.run(_inner())
 
 
+@click.command("list-tasks")
+@pass_script_info
+def _list_tasks_command(info: ScriptInfo) -> None:
+    app = info.load_app()
+
+    headers = ["Task name", "Schedule"]
+    rows = []
+    for task in app.extensions["QUART_TASKS"]._tasks:
+        if isinstance(task, _CronTask):
+            rows.append([task.name, task.cron_format])
+        elif isinstance(task, _PeriodicTask):
+            rows.append([task.name, str(task.period)])
+
+    rows.insert(0, headers)
+    widths = [max(len(row[i]) for row in rows) for i in range(len(headers))]
+    rows.insert(1, ["-" * w for w in widths])
+    template = "  ".join(f"{{{i}:<{w}}}" for i, w in enumerate(widths))
+
+    for row in rows:
+        click.echo(template.format(*row))
+
+
 async def _sleep_or_shutdown(seconds: Union[int, float], shutdown_event: asyncio.Event) -> None:
     _, pending = await asyncio.wait(
         [
