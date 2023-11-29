@@ -50,15 +50,22 @@ class _PeriodicTask:
     def get_next(self, start_time: datetime) -> datetime:
         return start_time + self.period
 
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.period}, {self.name})"
+
 
 class _CronTask:
     def __init__(self, cron_format: str, name: str, func: Callable) -> None:
         self.croniter = croniter(cron_format, ret_type=datetime)
         self.func = func
         self.name = name
+        self.cron_format = cron_format
 
     def get_next(self, start_time: datetime) -> datetime:
         return self.croniter.get_next(start_time=start_time)
+
+    def __repr__(self) -> str:
+        return f"{self.__class__.__name__}({self.cron_format}, {self.name})"
 
 
 class QuartTasks:
