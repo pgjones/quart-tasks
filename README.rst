@@ -41,7 +41,7 @@ scheduled tasks,
 
 Note: the non-standard cron format (for seconds) is as defined by
 `croniter
-<https://github.com/kiorky/croniter?tab=readme-ov-file#about-second-repeats>_`.
+<https://github.com/kiorky/croniter?tab=readme-ov-file#about-second-repeats>`_.
 
 The tasks will then run in the background as the app itself runs or
 they can be run manually via the CLI ``quart run-tasks``.
