@@ -1,3 +1,8 @@
+0.2.2 2023-11-30
+----------------
+
+* Bugfix register the list-tasks command so that is can be used.
+
 0.2.1 2023-11-29
 ----------------
 
