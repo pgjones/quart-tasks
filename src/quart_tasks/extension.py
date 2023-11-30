@@ -95,6 +95,7 @@ class QuartTasks:
         if self._tzinfo is None:
             self._tzinfo = zoneinfo.ZoneInfo(app.config.get("QUART_TASKS_TIMEZONE", "UTC"))
         app.cli.add_command(_run_tasks_command)
+        app.cli.add_command(_list_tasks_command)
         self._app = app
 
     def cron(
