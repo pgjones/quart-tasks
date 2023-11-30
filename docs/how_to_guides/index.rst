@@ -8,3 +8,5 @@ How to guides
    application_context.rst
    cli.rst
    configuration.rst
+   store.rst
+   testing.rst
