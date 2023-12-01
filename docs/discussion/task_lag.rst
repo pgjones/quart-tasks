@@ -2,7 +2,7 @@ Task lag
 ========
 
 Quart-Tasks works by sleeping till a task is due to be invoked and
-then waking to invoke the task. This measn the task may not be inovked
+then waking to invoke the task. This means the task may not be invoked
 at the exact time specified by either the cron format or period. The
 difference between the specified time and actual start time is termed
 the lag.
