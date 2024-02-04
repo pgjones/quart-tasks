@@ -12,7 +12,7 @@ To test a task Quart-Tasks provides a special ``test_run`` method,
         ...  # Do something
 
     async def test_my_task() -> None:
-        quart_tasks.test_run("my_task")
+        await quart_tasks.test_run("my_task")
         assert ...  # Task has resulted in expected changes
 
 This is better than running ``my_task`` directly as it ensures that
@@ -25,4 +25,4 @@ If the task raises and exception that will be raised from the
 
     async def test_my_task_raises() -> None:
         with pytest.raises(Exception):  # For example
-            quart_tasks.test_run("my_task")
+            await quart_tasks.test_run("my_task")
