@@ -37,8 +37,7 @@ class _TaskProtocol(Protocol):
     func: Callable
     name: str
 
-    def get_next(self, start_time: datetime) -> datetime:
-        ...
+    def get_next(self, start_time: datetime) -> datetime: ...
 
 
 class _PeriodicTask:
