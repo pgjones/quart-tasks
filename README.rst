@@ -25,7 +25,7 @@ scheduled tasks,
        ...  # Do something
 
    @tasks.cron(
-       seconds="*1/0",  # every 10 seconds
+       seconds="*/10",  # every 10 seconds
        minutes="*",
        hours="*",
        day_of_month="*",
