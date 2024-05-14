@@ -312,7 +312,7 @@ class QuartTasks:
 
     async def _handle_exception(self, task: _TaskProtocol, error: Exception) -> None:
         await got_task_exception.send_async(
-            self, _sync_wrapper=self._app.ensure_async, name=task.name, exception=error
+            self, _sync_wrapper=self._app.ensure_async, name=task.name, exception=error  # type: ignore # noqa
         )
         self._app.logger.error("Exception", exc_info=sys.exc_info())
 
