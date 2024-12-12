@@ -1,3 +1,9 @@
+0.3.0 2024-12-12
+----------------
+
+* Allow tasks to be added at runtime.
+* Support Python 3.13, drop Python 3.8.
+
 0.2.2 2023-11-30
 ----------------
 

@@ -1,6 +1,6 @@
 [project]
 name = "quart-tasks"
-version = "0.2.2"
+version = "0.3.0"
 description = "Quart extension that provides scheduled background tasks"
 authors = [
     {name = "pgjones", email = "philip.graham.jones@googlemail.com"},
