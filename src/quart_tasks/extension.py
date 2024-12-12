@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sys
+import zoneinfo
 from datetime import datetime, timedelta, tzinfo
 from typing import Awaitable, Callable, cast, List, Optional, Protocol, Tuple, TypeVar, Union
 
@@ -13,11 +14,6 @@ from .signals import got_task_exception
 from .store import MemoryStore, TaskStoreABC
 
 try:
-    import zoneinfo
-except ImportError:
-    from backports import zoneinfo  # type: ignore
-
-try:
     from asyncio import TaskGroup
 except ImportError:
     from taskgroup import TaskGroup  # type: ignore
@@ -25,7 +21,7 @@ except ImportError:
 try:
     from typing import ParamSpec
 except ImportError:
-    from typing_extensions import ParamSpec  # type: ignore
+    from typing_extensions import ParamSpec
 
 P = ParamSpec("P")
 T = TypeVar("T")
