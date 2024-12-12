@@ -119,7 +119,7 @@ class QuartTasks:
 
         .. code-block:: python
 
-            @app.cron("*/5 * * * *)
+            @tasks.cron("*/5 * * * *)
             async def infrequent_task():
                 ...
 
@@ -134,6 +134,63 @@ class QuartTasks:
             name: Name of the task, defaults to the function name.
         """
 
+        def decorator(func: Callable[P, T]) -> Callable[P, T]:
+            self.add_cron_task(
+                func,
+                cron_expression,
+                seconds=seconds,
+                minutes=minutes,
+                hours=hours,
+                day_of_month=day_of_month,
+                month=month,
+                day_of_week=day_of_week,
+                name=name,
+            )
+            return func
+
+        return decorator
+
+    def add_cron_task(
+        self,
+        task: Callable,
+        cron_expression: Optional[str] = None,
+        *,
+        seconds: Optional[str] = None,
+        minutes: Optional[str] = None,
+        hours: Optional[str] = None,
+        day_of_month: Optional[str] = None,
+        month: Optional[str] = None,
+        day_of_week: Optional[str] = None,
+        name: Optional[str] = None,
+    ) -> None:
+        """Add a cron task.
+
+        If the task is a synchronous function, the function will be
+        wrapped in :func:`~quart.utils.run_sync` and run in a thread
+        executor (with the wrapped function returned).
+
+        The cron definition can either be given in the cron format, or
+        as individual arguments. See for example
+        https://crontab.guru/. An example usage,
+
+        .. code-block:: python
+
+            async def infrequent_task():
+                ...
+
+            tasks.add_cron_task(infrequent_task, "*/5 * * * *)
+
+        Arguments:
+            cron_expression: The cron defintion.
+            task: The callable to execute as the task.
+            seconds: The seconds part of the cron definition.
+            minutes: The minutes part of the cron definition.
+            hours: The hours part of the cron definition.
+            day_of_month: The day of month part of the cron definition.
+            month: The month part of the cron definition.
+            day_of_week: The day of week part of the cron definition.
+            name: Name of the task, defaults to the function name.
+        """
         if cron_expression is None and (
             minutes is None
             or hours is None
@@ -147,16 +204,10 @@ class QuartTasks:
             if seconds is not None:
                 cron_expression = f"{cron_expression} {seconds}"
 
-        def decorator(func: Callable[P, T]) -> Callable[P, T]:
-            nonlocal name
+        if name is None:
+            name = task.__name__
 
-            if name is None:
-                name = func.__name__
-
-            self._tasks.append(_CronTask(cron_expression, name, func))
-            return func
-
-        return decorator
+        self._tasks.append(_CronTask(cron_expression, name, task))
 
     def periodic(
         self, period: timedelta, *, name: Optional[str] = None
@@ -170,7 +221,7 @@ class QuartTasks:
 
         .. code-block:: python
 
-            @app.periodic(timedelta(seconds=5))
+            @tasks.periodic(timedelta(seconds=5))
             async def frequent_task():
                 ...
 
@@ -180,15 +231,36 @@ class QuartTasks:
         """
 
         def decorator(func: Callable[P, T]) -> Callable[P, T]:
-            nonlocal name
-
-            if name is None:
-                name = func.__name__
-
-            self._tasks.append(_PeriodicTask(period, name, func))
+            self.add_periodic_task(func, period, name=name)
             return func
 
         return decorator
+
+    def add_periodic_task(
+        self, task: Callable, period: timedelta, *, name: Optional[str] = None
+    ) -> None:
+        """Add a periodic task.
+
+        If the task is a synchronous function, the function will be
+        wrapped in :func:`~quart.utils.run_sync` and run in a thread
+        executor (with the wrapped function returned).
+
+        .. code-block:: python
+
+            async def frequent_task():
+                ...
+
+            tasks.add_periodic_task(timedelta(seconds=5), frequent_task)
+
+        Arguments:
+            period: The period between task invocations.
+            task: The callable to execute as the task.
+            name: Name of the task, defaults to the function name.
+        """
+        if name is None:
+            name = task.__name__
+
+        self._tasks.append(_PeriodicTask(period, name, task))
 
     def before_task(
         self,
