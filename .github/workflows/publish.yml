@@ -7,19 +7,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: 3.13
-
-      - run: |
-          pip install pdm
-          pdm build
-
-      - uses: actions/upload-artifact@v4
-        with:
-          path: ./dist
+      - uses: pgjones/actions/build@v1
 
   pypi-publish:
     needs: ['build']
@@ -31,9 +19,4 @@ jobs:
       # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
     steps:
-      - uses: actions/download-artifact@v4
-
-      - name: Publish package distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: artifact/
+      - uses: pgjones/actions/publish@v1

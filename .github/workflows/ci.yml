@@ -29,7 +29,7 @@ jobs:
           - {name: 'docs', python: '3.13', tox: docs}
 
     steps:
-      - uses: pgjones/actions/tox@95d55ce685019891495ca3470a25ce533920aeb0
+      - uses: pgjones/actions/tox@v1
         with:
           environment: ${{ matrix.tox }}
 
@@ -38,4 +38,4 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: pgjones/actions/zizmor@5ed328a66a6abe85e80ec855208afb33dc53c478
+      - uses: pgjones/actions/zizmor@v1
