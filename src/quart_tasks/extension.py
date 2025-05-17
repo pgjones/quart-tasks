@@ -2,8 +2,20 @@ import asyncio
 import logging
 import sys
 import zoneinfo
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, tzinfo
-from typing import Awaitable, Callable, cast, List, Optional, Protocol, Tuple, TypeVar, Union
+from typing import (
+    AsyncGenerator,
+    Awaitable,
+    Callable,
+    cast,
+    List,
+    Optional,
+    Protocol,
+    Tuple,
+    TypeVar,
+    Union,
+)
 
 import click
 from croniter import croniter
@@ -317,6 +329,15 @@ class QuartTasks:
         """
         self.after_task_funcs.append(func)
         return func
+
+    @asynccontextmanager
+    async def task_context(self) -> AsyncGenerator[None, None]:
+        async with self._app.app_context():
+            await self._preprocess_task()
+            try:
+                yield
+            finally:
+                await self._postprocess_task()
 
     async def run(self, task_name: Optional[str] = None) -> None:
         await self._store.startup()

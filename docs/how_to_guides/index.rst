@@ -10,4 +10,5 @@ How to guides
    cli.rst
    configuration.rst
    store.rst
+   task_context.rst
    testing.rst
