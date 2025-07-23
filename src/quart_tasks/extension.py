@@ -103,6 +103,7 @@ class QuartTasks:
             self._tzinfo = zoneinfo.ZoneInfo(app.config.get("QUART_TASKS_TIMEZONE", "UTC"))
         app.cli.add_command(_run_tasks_command)
         app.cli.add_command(_list_tasks_command)
+        app.cli.add_command(_invoke_task_command)
         self._app = app
 
     def cron(
@@ -424,6 +425,23 @@ def _run_tasks_command(info: ScriptInfo, task_name: Optional[str] = None) -> Non
         await app.startup()
         try:
             await app.extensions["QUART_TASKS"].run(task_name)
+        finally:
+            await app.shutdown()
+
+    asyncio.run(_inner())
+
+
+@click.command("invoke-task")
+@click.argument("task_name", required=True)
+@pass_script_info
+def _invoke_task_command(info: ScriptInfo, task_name: str) -> None:
+    app = info.load_app()
+
+    async def _inner() -> None:
+        app.config["QUART_TASKS_WHILST_SERVING"] = False
+        await app.startup()
+        try:
+            await app.extensions["QUART_TASKS"].test_run(task_name)
         finally:
             await app.shutdown()
 

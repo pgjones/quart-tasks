@@ -46,6 +46,9 @@ Note: the non-standard cron format (for seconds) is as defined by
 The tasks will then run in the background as the app itself runs or
 they can be run manually via the CLI ``quart run-tasks``.
 
+To invoke a task immediately use the ``quart invoke-task [task_name]``
+CLI command.
+
 Contributing
 ------------
 
