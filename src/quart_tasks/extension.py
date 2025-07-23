@@ -345,6 +345,8 @@ class QuartTasks:
             for task in self._tasks:
                 if task_name is None or task_name == task.name:
                     task_group.create_task(self._run_task(task))
+            if len(task_group._tasks) == 0 and task_name is not None:
+                raise ValueError(f"Task {task_name} not found")
         await self._store.shutdown()
 
     async def test_run(self, task_name: str) -> None:
