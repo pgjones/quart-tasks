@@ -1,3 +1,9 @@
+0.5.0 2025-07-23
+----------------
+
+* Raise an error if a specific task cannot be run.
+* Add a invoke-task CLI command to immediately run a task.
+
 0.4.0 2025-05-17
 ----------------
 
