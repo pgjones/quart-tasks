@@ -425,6 +425,8 @@ def _run_tasks_command(info: ScriptInfo, task_name: Optional[str] = None) -> Non
         await app.startup()
         try:
             await app.extensions["QUART_TASKS"].run(task_name)
+        except Exception:
+            app.logger.exception("Exception")
         finally:
             await app.shutdown()
 
@@ -442,6 +444,8 @@ def _invoke_task_command(info: ScriptInfo, task_name: str) -> None:
         await app.startup()
         try:
             await app.extensions["QUART_TASKS"].test_run(task_name)
+        except Exception:
+            app.logger.exception("Exception")
         finally:
             await app.shutdown()
 
