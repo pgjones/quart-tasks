@@ -2,20 +2,10 @@ import asyncio
 import logging
 import sys
 import zoneinfo
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, tzinfo
-from typing import (
-    AsyncGenerator,
-    Awaitable,
-    Callable,
-    cast,
-    List,
-    Optional,
-    Protocol,
-    Tuple,
-    TypeVar,
-    Union,
-)
+from typing import cast, ParamSpec, Protocol, TypeVar
 
 import click
 from croniter import croniter
@@ -29,11 +19,6 @@ try:
     from asyncio import TaskGroup
 except ImportError:
     from taskgroup import TaskGroup  # type: ignore
-
-try:
-    from typing import ParamSpec
-except ImportError:
-    from typing_extensions import ParamSpec
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -78,17 +63,17 @@ class _CronTask:
 class QuartTasks:
     def __init__(
         self,
-        app: Optional[Quart] = None,
+        app: Quart | None = None,
         *,
-        store: Optional[TaskStoreABC] = None,
-        tzinfo: Optional[tzinfo] = None,
+        store: TaskStoreABC | None = None,
+        tzinfo: tzinfo | None = None,
     ) -> None:
         self._store: TaskStoreABC
         if store is None:
             self._store = MemoryStore()
         else:
             self._store = store
-        self._tasks: List[_TaskProtocol] = []
+        self._tasks: list[_TaskProtocol] = []
         self._tzinfo = tzinfo
         self.after_task_funcs: list[Callable[[], Awaitable[None]]] = []
         self.before_task_funcs: list[Callable[[], Awaitable[None]]] = []
@@ -108,16 +93,16 @@ class QuartTasks:
 
     def cron(
         self,
-        cron_expression: Optional[str] = None,
+        cron_expression: str | None = None,
         /,
         *,
-        seconds: Optional[str] = None,
-        minutes: Optional[str] = None,
-        hours: Optional[str] = None,
-        day_of_month: Optional[str] = None,
-        month: Optional[str] = None,
-        day_of_week: Optional[str] = None,
-        name: Optional[str] = None,
+        seconds: str | None = None,
+        minutes: str | None = None,
+        hours: str | None = None,
+        day_of_month: str | None = None,
+        month: str | None = None,
+        day_of_week: str | None = None,
+        name: str | None = None,
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
         """Add a cron task.
 
@@ -166,15 +151,15 @@ class QuartTasks:
     def add_cron_task(
         self,
         task: Callable,
-        cron_expression: Optional[str] = None,
+        cron_expression: str | None = None,
         *,
-        seconds: Optional[str] = None,
-        minutes: Optional[str] = None,
-        hours: Optional[str] = None,
-        day_of_month: Optional[str] = None,
-        month: Optional[str] = None,
-        day_of_week: Optional[str] = None,
-        name: Optional[str] = None,
+        seconds: str | None = None,
+        minutes: str | None = None,
+        hours: str | None = None,
+        day_of_month: str | None = None,
+        month: str | None = None,
+        day_of_week: str | None = None,
+        name: str | None = None,
     ) -> None:
         """Add a cron task.
 
@@ -223,7 +208,7 @@ class QuartTasks:
         self._tasks.append(_CronTask(cron_expression, name, task))
 
     def periodic(
-        self, period: timedelta, *, name: Optional[str] = None
+        self, period: timedelta, *, name: str | None = None
     ) -> Callable[[Callable[P, T]], Callable[P, T]]:
         """Add a periodic task.
 
@@ -250,7 +235,7 @@ class QuartTasks:
         return decorator
 
     def add_periodic_task(
-        self, task: Callable, period: timedelta, *, name: Optional[str] = None
+        self, task: Callable, period: timedelta, *, name: str | None = None
     ) -> None:
         """Add a periodic task.
 
@@ -340,7 +325,7 @@ class QuartTasks:
             finally:
                 await self._postprocess_task()
 
-    async def run(self, task_name: Optional[str] = None) -> None:
+    async def run(self, task_name: str | None = None) -> None:
         await self._store.startup()
         async with TaskGroup() as task_group:
             for task in self._tasks:
@@ -408,7 +393,7 @@ class QuartTasks:
         )
         self._app.logger.error("Exception", exc_info=sys.exc_info())
 
-    async def _get_next(self, task: _TaskProtocol) -> Tuple[Union[int, float], datetime]:
+    async def _get_next(self, task: _TaskProtocol) -> tuple[int | float, datetime]:
         now = datetime.now(self._tzinfo)
         next_execution = task.get_next(await self._store.get(task.name, now))
         return max((next_execution - now).total_seconds(), 0), next_execution
@@ -417,7 +402,7 @@ class QuartTasks:
 @click.command("run-tasks")
 @click.argument("task_name", required=False)
 @pass_script_info
-def _run_tasks_command(info: ScriptInfo, task_name: Optional[str] = None) -> None:
+def _run_tasks_command(info: ScriptInfo, task_name: str | None = None) -> None:
     app = info.load_app()
 
     async def _inner() -> None:
@@ -474,7 +459,7 @@ def _list_tasks_command(info: ScriptInfo) -> None:
         click.echo(template.format(*row))
 
 
-async def _sleep_or_shutdown(seconds: Union[int, float], shutdown_event: asyncio.Event) -> None:
+async def _sleep_or_shutdown(seconds: int | float, shutdown_event: asyncio.Event) -> None:
     _, pending = await asyncio.wait(
         [
             asyncio.create_task(asyncio.sleep(seconds)),

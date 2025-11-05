@@ -1,6 +1,5 @@
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
-from typing import Dict
 
 
 class TaskStoreABC(metaclass=ABCMeta):
@@ -44,7 +43,7 @@ class MemoryStore(TaskStoreABC):
     """An in memory store of execution times."""
 
     def __init__(self) -> None:
-        self._executions: Dict[str, datetime] = {}
+        self._executions: dict[str, datetime] = {}
 
     async def startup(self) -> None:
         pass
